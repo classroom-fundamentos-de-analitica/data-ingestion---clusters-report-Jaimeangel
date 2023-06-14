@@ -12,45 +12,36 @@ espacio entre palabra y palabra.
 import pandas as pd
 import re
 
-def funcion3():
-    with open('clusters_report.txt', 'r') as file:
-        lines = file.readlines()
-
-    # Expresión regular para encontrar palabras sin números y teniendo en cuenta los guiones entre letras
-    pattern = re.compile(r'(\b(?:[a-zA-Z]+(?:-[a-zA-Z]+)?)\b)(?![^\(]*\))')
-
-    modified_lines = []
-    for line in lines:
-        modified_line = pattern.sub(r'\1, ', line)
-        modified_lines.append(modified_line)
-
-    for line in modified_lines:
-        print(line)
-funcion3()
-
-import pandas as pd
-
 def ingest_data():
-    # Leer las dos primeras líneas del archivo
-    with open("clusters_report.txt", "r") as file:
-        lines = file.readlines()[:2]
 
-    # Procesar las dos primeras líneas
-    processed_lines = []
-    for line in lines:
-        processed_line = ""
-        for i, char in enumerate(line):
-            if char.isalpha() and i < len(line) - 1 and line[i+1].isalpha():
-                processed_line += char + "_"
-            else:
-                processed_line += char
-        processed_lines.append(processed_line.lower())
-    
+    #
+    # Inserte su código aquí
+    #
+    with open('clusters_report.txt','r') as reporte:
+        reporte_lines = reporte.readlines()
 
-    # Crear un DataFrame de Pandas
-    df = pd.DataFrame(processed_lines)
+    row_completed = []
+    row_for_specific_cluster = []
 
-    # Mostrar el DataFrame
-    print(df)
-    
+    for row in reporte_lines[4:]:
+        #row starting with numbers
+        if re.match('^ +\d+ +', row):
+            lista = row.split()
+            row_for_specific_cluster.append(int(lista[0]))
+            row_for_specific_cluster.append(int(lista[1]))
+            row_for_specific_cluster.append(float(lista[2].replace(',','.')))
+            row_for_specific_cluster.append(' '.join(lista[4:]))
+        #row starting with empty spaces and after a word
+        elif re.match('^ +\w', row):
+            palabras = row.split()
+            palabras = ' '.join(palabras)
+            row_for_specific_cluster[3] += ' ' + palabras
+        #completely empty row
+        elif re.match('^\n', row) or re.match('^ +$', row):
+            row_for_specific_cluster[3] = row_for_specific_cluster[3].replace('.', '')
+            row_completed.append(row_for_specific_cluster)
+            row_for_specific_cluster = []
+
+    dataFrame = pd.DataFrame (row_completed, columns = ['cluster', 'cantidad_de_palabras_clave', 'porcentaje_de_palabras_clave', 'principales_palabras_clave'])
+    return dataFrame
 ingest_data()
